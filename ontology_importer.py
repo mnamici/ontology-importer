@@ -52,7 +52,6 @@ from eddy.ui.view import DiagramView
 import os
 import sqlite3
 import sys
-from rdflib import Graph
 import re
 from eddy.core.owl import Literal
 

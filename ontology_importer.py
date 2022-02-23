@@ -1,23 +1,27 @@
+from abc import ABCMeta
 import ast
-import json
+import os
+import sqlite3
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, QMargins, QRect, QSize, QPoint
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QWidget, QCheckBox, QApplication, QScrollArea, QLabel, QListWidget, \
-    QVBoxLayout, QLayout, QSizePolicy, QGroupBox, QBoxLayout, QLineEdit
-from PyQt5.QtGui import QMovie, QFont
 from PyQt5.QtCore import QCoreApplication
-import eddy.core.project
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QWidget, QCheckBox, QVBoxLayout, QLineEdit
 from eddy.core.commands.diagram import CommandDiagramResize
 from eddy.core.commands.edges import CommandEdgeAdd
+from eddy.core.commands.iri import CommandChangeIRIOfNode
+from eddy.core.commands.iri import CommandIRIAddAnnotationAssertion
 from eddy.core.commands.nodes import CommandNodeAdd
-from eddy.core.commands.iri import CommandChangeIRIOfNode, CommandChangeLiteralOfNode
-from eddy.core.commands.project import CommandProjectAddAnnotationProperty
-from eddy.core.datatypes.common import Enum_
+from eddy.core.datatypes.graphol import Item
+from eddy.core.functions.misc import isEmpty
+from eddy.core.functions.path import expandPath
+from eddy.core.functions.signals import connect
 from eddy.core.items.nodes.attribute import AttributeNode
 from eddy.core.items.nodes.complement import ComplementNode
+from eddy.core.items.nodes.concept import ConceptNode
 from eddy.core.items.nodes.datatype_restriction import DatatypeRestrictionNode
 from eddy.core.items.nodes.disjoint_union import DisjointUnionNode
 from eddy.core.items.nodes.domain_restriction import DomainRestrictionNode
@@ -34,26 +38,14 @@ from eddy.core.items.nodes.role_chain import RoleChainNode
 from eddy.core.items.nodes.role_inverse import RoleInverseNode
 from eddy.core.items.nodes.union import UnionNode
 from eddy.core.items.nodes.value_domain import ValueDomainNode
-from eddy.core.owl import AnnotationAssertion, AnnotationAssertionProperty, OWL2Datatype
-from eddy.core.commands.iri import CommandIRIAddAnnotationAssertion
-from eddy.core.functions.misc import clamp, rangeF
-from eddy.core.functions.signals import connect, disconnect
-from eddy.core.plugin import AbstractPlugin
 from eddy.core.jvm import getJavaVM
-from eddy.core.functions.path import expandPath
+from eddy.core.owl import AnnotationAssertion, OWL2Datatype
 from eddy.core.owl import IRI
-from eddy.core.datatypes.graphol import Item
-from eddy.core.items.nodes.concept import ConceptNode
+from eddy.core.owl import Literal
+from eddy.core.plugin import AbstractPlugin
 from eddy.ui.fields import IntegerField
 from eddy.ui.progress import BusyProgressDialog
-from abc import ABCMeta
-from eddy.core.functions.misc import isEmpty
-from eddy.ui.view import DiagramView
-import os
-import sqlite3
-import sys
-import re
-from eddy.core.owl import Literal
+
 
 class OntologyImporterPlugin(AbstractPlugin):
 
